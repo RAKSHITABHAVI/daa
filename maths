@@ -1,0 +1,306 @@
+#do-little
+import numpy as np
+import sympy as sp
+A=np.array([[2,3,-1],[3,2,1],[1,-5,3]])
+B=np.array([5,10,0])
+n=len(A)
+L=np.zeros((n,n))
+U=np.zeros((n,n))
+for i in range(n):
+    L[i,i]=1
+
+    for k in range(i,n):
+        sum_u=0
+        for  j in range(i):
+            sum_u=sum_u+L[i,j]*U[j,k]
+        U[i,k]=A[i,k]-sum_u
+    for k in range(i+1,n):
+        sum_l=0
+        for j in range(i):
+            sum_l=sum_l+L[k,j]*U[j,1]
+        L[k,i]=(A[k,i]-sum_l)/U[i,i]
+
+y=np.linalg.solve(L,B)
+x=np.linalg.solve(U,y)
+print("L:")
+display(sp.Matrix(L))
+print("U:")
+display(sp.Matrix(U))
+print("Y:")
+display(sp.Matrix(y))
+print("X:")
+display(sp.Matrix(x))
+
+
+
+
+#CHOLESKY
+import numpy as np
+import sympy as sp
+def cholesky_decomposition(A):
+    if A.shape[0] != A.shape[1]:
+        raise ValueError("Matrix must be square")
+    n = A.shape[0]
+    L = np.zeros_like(A)
+    for i in range(n):
+        for j in range(i + 1):
+
+            if i == j:
+                L[i, j] = np.sqrt(A[i, i] - np.sum(L[i, :i] ** 2))
+
+            else:
+                L[i, j] = (A[i, j] - np.sum(L[i, :j] * L[j, :j])) / L[j, j]
+    return L
+A = np.array([[1, -2, 2],
+              [-2, 5, -3],
+              [2, -3, 6]])
+B=np.array([4,-7,10])
+L = cholesky_decomposition(A)
+print("Lower triangular matrix L:")
+print(L)
+print("\nReconstructed matrix A from L * L.T:")
+print(np.dot(L, L.T))
+y=np.linalg.solve(L,B)
+x=np.linalg.solve(L.T,y)
+print("Y:")
+display(sp.Matrix(y))
+print("X:")
+display(sp.Matrix(x))
+
+
+
+
+
+#for jupter svd and image
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+img = r"image1.jpg"
+A = cv2.imread(img, 0)
+
+
+u, s, vt = np.linalg.svd(A, full_matrices=False)
+
+k = int(input("Enter the value for compression k:"))
+
+
+compressed = np.dot(u[:, :k], np.dot(np.diag(s[:k]), vt[:k, :]))
+
+plt.imshow(A, cmap='gray')
+plt.title(f"Image ")
+plt.axis("off")
+plt.show()
+
+plt.imshow(compressed, cmap='gray')
+plt.title(f"Compressed Image (k = {k})")
+plt.axis("off")
+plt.show()
+
+
+
+
+#PCA
+import numpy as np
+import matplotlib.pyplot as plt
+x=np.array([[19,22,6,3,2,20],[12,6,9,15,13,5]])
+n=np.shape(x)
+print("Shape of the matrix is:",n)
+
+x1 = np.mean(x[0], axis=0)
+x2 = np.mean(x[1], axis=0)
+print("mean of x1 and x2 is:",x1,"&",x2)
+Xm = np.array([x[0] - x1, x[1] - x2])
+print("Centered Data Matrix Xm:\n", Xm)
+n_samples = x.shape[1]
+s = (1 / (n_samples - 1)) * np.dot(Xm.reshape(2, -1), Xm.reshape(2, -1).T)
+print("Covariance Matrix S:\n", s)
+
+eigval,eigvec=np.linalg.eig(s)
+print("eigen values are:",eigval)
+print("eigen vectors are:",eigvec)
+ml=np.max(eigval)
+print("max eigenvalues",ml)
+pc=eigvec[:,np.argmax(eigval)]
+print("eigen value of max eigen val:",pc)
+v=pc.T@Xm
+print("The one-d data")
+print(v)
+
+
+
+
+# Optimization using Hessian matrix for 2 variables
+from sympy import *
+x,y=symbols('x y')
+f=x**2+(y**2)-4*x+2*y
+print("The function is :")
+display(f)
+fx=diff(f,x)
+fy=diff(f,y)
+h=hessian(f, (x, y))
+s=solve((fx,fy), (x, y))
+x=h.eigenvals()
+print("the critical point is :")
+display(s)
+print("the hessian matrix")
+display(h)
+print("the hessian matrix after substitution")
+h1=h.subs(s)
+display(h1)
+print("the eigen values of hessian matrix")
+val=h1.eigenvals()
+display(val)
+
+if all(i > 0 for i in val.values()):
+    print("The function is a local minima")
+    f1=f.subs(s)
+    print("The minimum value of function is ", f1)
+elif all(i < 0 for i in val.values()):
+    print("The function is a local maxima")
+    f1=f.subs(s)
+    print("The maximum value is ", f1)
+elif any(i > 0 for i in val.values()) and any(i < 0 for i in val.values()):
+    print("The function is a saddle point")
+elif any(i == 0 for i in val.values()):
+    print("The function needs to be investigated")
+
+
+
+
+
+# Optimization using Hessian matrix for 3 variables
+from sympy import *
+x,y,z=symbols('x y z')
+f=x**2+(y**2)+z**2+x*y+y*z+z*x
+print("the function is")
+display(f)
+fx=diff(f,x)
+fy=diff(f,y)
+fz=diff(f,z)
+h=hessian(f, (x, y,z))
+s=solve((fx,fy,fz), (x, y,z))
+x=h.eigenvals()
+print("the critical point is")
+display(s)
+print("the hessian matrix")
+display(h)
+print("the hessian matrix after substitution")
+h1=h.subs(s)
+display(h1)
+print("the eigen values of hessian matrix")
+val=h1.eigenvals()
+display(val)
+
+
+if all(i > 0 for i in val.values()):
+    print("The function is a local minima")
+    f1=f.subs(s)
+    print("The minimum value of function is ", f1)
+elif all(i < 0 for i in val.values()):
+    print("The function is a local maxima")
+    f1=f.subs(s)
+    print("The maximum value is ", f1)
+elif any(i > 0 for i in val.values()) and any(i < 0 for i in val.values()):
+    print("The function is a saddle point")
+elif any(i == 0 for i in val.values()):
+    print("The function needs to be investigated")
+
+
+
+
+
+
+#Newton 's quadratic optimization
+from sympy import *
+x,y=symbols('x y')
+f=x-y+2*(x**2)+2*x*y+y**2
+print("the function is")
+display(f)
+
+grad_f = Matrix([diff(f, x), diff(f, y)])
+print("the gradient function is")
+display(grad_f)
+x0=Matrix([0,0])
+grad_fs = grad_f.subs({x: x0[0], y: x0[1]}).evalf()
+
+h=hessian(f,(x,y))
+print("the hessian matrix")
+display(h)
+
+while True:
+    h1=h.subs({x: x0[0], y: x0[1]}).evalf()
+    h_inv=h1.inv()
+    x0=x0 - h_inv * grad_fs
+    grad_fs=grad_f.subs({x: x0[0], y: x0[1]}).evalf()
+    if all(abs(val) <= 0 for val in grad_fs):
+        break
+
+print("Local minimum found at:")
+display(x0)
+f1=f.subs({x: x0[0], y: x0[1]}).evalf()
+print("the minimum value of funtion is",f1)
+
+
+
+
+
+
+
+#langrange
+from sympy import *
+x,y,z,lamda=symbols('x y z lamda')
+cir=x**2+y**2+z**2-1
+f=(x-3)**2+(y-4)**2+(z-12)**2
+l=f+lamda*cir
+sol=solve((diff(l,x),
+           diff(l,y),
+           diff(l,z),
+           diff(l,lamda)),
+            (x,y,z,lamda),dict=True)
+final=[]
+point=[]
+for i in sol:
+  print("the x,y,z is",((i[x], i[y], i[z])))
+  point.append((i[x], i[y], i[z]))
+  final.append(f.subs(i))
+min_=min(final)
+max_=max(final)
+print("the minima is funtion is ",min_,"point is ",point[final.index(min_)])
+print("the maxima is funtion is ",max_,"point is ",point[final.index(max_)])
+
+
+
+
+
+
+#fibonacci search
+from sympy import *
+x=symbols('x')
+a,b,n=-2,3,6
+f=x**2-2.6*x+2
+fi=[1,1,2,3,5,8,13]
+
+for k in range(1,7):
+  l=fi[n-k]*(b-a)/fi[n-k+1]
+  xk=b-l
+  yk=a+l
+  print()
+  print(f"Iteration {k}")
+  print(f"l : {l:.4f}")
+
+  print(f"x : {xk:.4f}")
+  print(f"y : {yk:.4f}")
+  fx=f.subs(x,xk)
+  fy=f.subs(x,yk)
+  print(f"fx : {fx:.4f}")
+  print(f"fy : {fy:.4f}")
+  if fx>fy:
+    a=xk
+  elif fx<fy:
+    b=yk
+  
+print(f"the value of a is {a:.4f} b is")
+x_ans=(a+b)/2
+print("the value of function is",f.subs(x,x_ans))
